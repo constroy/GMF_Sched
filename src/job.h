@@ -17,6 +17,8 @@
 #define BUFLEN 100
 #define GLOBALFILE "screendump"
 
+
+//作业状态
 enum jobstate{
     READY,RUNNING,DONE
 };
@@ -24,6 +26,8 @@ enum jobstate{
 enum cmdtype{
     ENQ=-1,DEQ=-2,STAT=-3 
 };
+
+//作业调度命令
 struct jobcmd{
     enum cmdtype type;
     int argnum;
@@ -34,6 +38,8 @@ struct jobcmd{
 
 #define DATALEN sizeof(struct jobcmd)
 
+
+//作业信息
 struct jobinfo{
     int jid;              /* 作业ID */
     int pid;              /* 进程ID */
@@ -47,6 +53,8 @@ struct jobinfo{
     enum jobstate state;  /* 作业状态 */
 };
 
+
+//就绪队列
 struct waitqueue{
     struct waitqueue *next;
     struct jobinfo *job;

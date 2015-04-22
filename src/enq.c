@@ -25,17 +25,20 @@ int main(int argc,char *argv[])
 	char c,*offset;
 	struct jobcmd enqcmd;
 
+    //命令格式出错的提示用法
 	if(argc==1)
 	{
 		usage();
 		return 1;
 	}
 
+    //若指定了优先级，获取之
 	while(--argc>0 && (*++argv)[0]=='-')
 	{
 		while(c=*++argv[0])
 			switch(c)
 		{
+		    //存取优先级级数
 			case 'p':p=atoi(*(++argv));
 			argc--;
 			break;
@@ -44,19 +47,22 @@ int main(int argc,char *argv[])
 				return 1;
 		}
 	}
-
+    
+    //指定优先级级数非法
 	if(p<0||p>3)
 	{
 		printf("invalid priority:must between 0 and 3\n");
 		return 1;
 	}
 
+    //记录入队命令
 	enqcmd.type=ENQ;
 	enqcmd.defpri=p;
 	enqcmd.owner=getuid();
 	enqcmd.argnum=argc;
 	offset=enqcmd.data;
 
+    //将入队命令中制定的可执行文件名及其参数用冒号隔开
 	while (argc-->0)
 	{
 		strcpy(offset,*argv);
@@ -65,6 +71,7 @@ int main(int argc,char *argv[])
 		argv++;
 	}
 
+    //输出调试信息
     #ifdef DEBUG
 		printf("enqcmd cmdtype\t%d\n"
 			"enqcmd owner\t%d\n"
@@ -73,10 +80,12 @@ int main(int argc,char *argv[])
 			enqcmd.type,enqcmd.owner,enqcmd.defpri,enqcmd.data);
 
     #endif 
-
+        
+        //打开fifo文件
 		if((fd=open("/tmp/server",O_WRONLY))<0)
 			error_sys("enq open fifo failed");
-
+        
+        //向fifo文件写数据
 		if(write(fd,&enqcmd,DATALEN)<0)
 			error_sys("enq write failed");
 

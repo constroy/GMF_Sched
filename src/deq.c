@@ -1,3 +1,5 @@
+//作业出队命令
+
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
@@ -21,12 +23,14 @@ int main(int argc,char *argv[])
 	struct jobcmd deqcmd;
 	int fd;
 	
+	//命令行参数个数出错
 	if(argc!=2)
 	{
 		usage();
 		return 1;
 	}
-
+    
+    //记录出队命令
 	deqcmd.type=DEQ;
 	deqcmd.defpri=0;
 	deqcmd.owner=getuid();
@@ -35,9 +39,11 @@ int main(int argc,char *argv[])
 	strcpy(deqcmd.data,*++argv);
 	printf("jid %s\n",deqcmd.data);
 
+    //打开fifo文件
 	if((fd=open("/tmp/server",O_WRONLY))<0)
 		error_sys("deq open fifo failed");
 
+    //向fifo文件写数据
 	if(write(fd,&deqcmd,DATALEN)<0)
 		error_sys("deq write failed");
 
