@@ -2,7 +2,7 @@
 #include <errno.h>
 #include "job.h"
 
-/* ´íÎó´¦Àí */
+/* é”™è¯¯å¤„ç† */
 void error_doit(int errnoflag,const char *fmt,va_list ap)
 {
   int errno_save;
@@ -10,31 +10,31 @@ void error_doit(int errnoflag,const char *fmt,va_list ap)
 
   errno_save=errno;
   
-  //ËÍ¸ñÊ½»¯Êä³öµ½bufÖĞ
+  //é€æ ¼å¼åŒ–è¾“å‡ºåˆ°bufä¸­
   vsprintf(buf,fmt,ap);
   
-  //Èç¹ûÒªÊä³ö´íÎó´úÂë£¬Ôò½«´íÎó´úÂë¸ñÊ½»¯×·¼Óµ½bufÖ®ºó£¬²¢Ìí¼Ó»»ĞĞ·û
+  //å¦‚æœè¦è¾“å‡ºé”™è¯¯ä»£ç ï¼Œåˆ™å°†é”™è¯¯ä»£ç æ ¼å¼åŒ–è¿½åŠ åˆ°bufä¹‹åï¼Œå¹¶æ·»åŠ æ¢è¡Œç¬¦
   if (errnoflag)
     sprintf(buf+strlen(buf),":%s",strerror(errno_save));
   strcat(buf,"\n");
   
-  //Ë¢ĞÂÊä³ö»º³åÇø
+  //åˆ·æ–°è¾“å‡ºç¼“å†²åŒº
   fflush(stdout);
   fputs(buf,stderr);
   fflush(NULL);
   return;
 }
 
-//ÏµÍ³³ö´í´¦Àíº¯Êı
+//ç³»ç»Ÿå‡ºé”™å¤„ç†å‡½æ•°
 void error_sys(const char *fmt,...)
 {
   va_list ap;
   
-  //»ñÈ¡²ÎÊıÁĞ±íµÄ²ÎÊı
+  //è·å–å‚æ•°åˆ—è¡¨çš„å‚æ•°
   va_start(ap,fmt);
-  //µ÷ÓÃ³ö´í´¦Àíº¯Êı
+  //è°ƒç”¨å‡ºé”™å¤„ç†å‡½æ•°
   error_doit(1,fmt,ap);
-  //Ê¹ÓÃÍê±Ïºó½áÊø
+  //ä½¿ç”¨å®Œæ¯•åç»“æŸ
   va_end(ap);
   exit(1);
 }

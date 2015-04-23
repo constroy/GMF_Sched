@@ -1,4 +1,4 @@
-//×÷Òµ³ö¶ÓÃüÁî
+//ä½œä¸šå‡ºé˜Ÿå‘½ä»¤
 
 #include <unistd.h>
 #include <string.h>
@@ -9,7 +9,7 @@
 #include "job.h"
 
 /* 
- * ÃüÁîÓï·¨¸ñÊ½
+ * å‘½ä»¤è¯­æ³•æ ¼å¼
  *     deq jid
  */
 void usage()
@@ -23,14 +23,14 @@ int main(int argc,char *argv[])
 	struct jobcmd deqcmd;
 	int fd;
 	
-	//ÃüÁîĞĞ²ÎÊı¸öÊı³ö´í
+	//å‘½ä»¤è¡Œå‚æ•°ä¸ªæ•°å‡ºé”™
 	if(argc!=2)
 	{
 		usage();
 		return 1;
 	}
     
-    //¼ÇÂ¼³ö¶ÓÃüÁî
+    //è®°å½•å‡ºé˜Ÿå‘½ä»¤
 	deqcmd.type=DEQ;
 	deqcmd.defpri=0;
 	deqcmd.owner=getuid();
@@ -39,11 +39,11 @@ int main(int argc,char *argv[])
 	strcpy(deqcmd.data,*++argv);
 	printf("jid %s\n",deqcmd.data);
 
-    //´ò¿ªfifoÎÄ¼ş
+    //æ‰“å¼€fifoæ–‡ä»¶
 	if((fd=open("/tmp/server",O_WRONLY))<0)
 		error_sys("deq open fifo failed");
 
-    //ÏòfifoÎÄ¼şĞ´Êı¾İ
+    //å‘fifoæ–‡ä»¶å†™æ•°æ®
 	if(write(fd,&deqcmd,DATALEN)<0)
 		error_sys("deq write failed");
 

@@ -1,4 +1,4 @@
-//×÷Òµ×´Ì¬²é¿´ÃüÁî
+//ä½œä¸šçŠ¶æ€æŸ¥çœ‹å‘½ä»¤
 
 #include <unistd.h>
 #include <string.h>
@@ -9,7 +9,7 @@
 #include "job.h"
 
 /* 
- * ÃüÁîÓï·¨¸ñÊ½
+ * å‘½ä»¤è¯­æ³•æ ¼å¼
  *     stat
  */
 void usage()
@@ -22,24 +22,24 @@ int main(int argc,char *argv[])
 	struct jobcmd statcmd;
 	int fd;
 
-    //ÃüÁî²ÎÊı¸öÊı³ö´í£¬ÌáÊ¾ÃüÁîÓÃ·¨ĞÅÏ¢
+    //å‘½ä»¤å‚æ•°ä¸ªæ•°å‡ºé”™ï¼Œæç¤ºå‘½ä»¤ç”¨æ³•ä¿¡æ¯
 	if(argc!=1)
 	{
 		usage();
 		return 1;
 	}
     
-    //¼ÇÂ¼×÷Òµ×´Ì¬²é¿´ÃüÁî
+    //è®°å½•ä½œä¸šçŠ¶æ€æŸ¥çœ‹å‘½ä»¤
 	statcmd.type=STAT;
 	statcmd.defpri=0;
 	statcmd.owner=getuid();
 	statcmd.argnum=0;
 
-    //´ò¿ªfifoÎÄ¼ş
+    //æ‰“å¼€fifoæ–‡ä»¶
 	if((fd=open("/tmp/server",O_WRONLY))<0)
 		error_sys("stat open fifo failed");
 
-    //ÏòfifoÎÄ¼şĞ´Êı¾İ
+    //å‘fifoæ–‡ä»¶å†™æ•°æ®
 	if(write(fd,&statcmd,DATALEN)<0)
 		error_sys("stat write failed");
 

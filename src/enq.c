@@ -7,7 +7,7 @@
 #include "job.h"
 #define DEBUG
 /* 
- * ÃüÁîÓï·¨¸ñÊ½
+ * å‘½ä»¤è¯­æ³•æ ¼å¼
  *     enq [-p num] e_file args
  */
 void usage()
@@ -25,20 +25,20 @@ int main(int argc,char *argv[])
 	char c,*offset;
 	struct jobcmd enqcmd;
 
-    //ÃüÁî¸ñÊ½³ö´íµÄÌáÊ¾ÓÃ·¨
+    //å‘½ä»¤æ ¼å¼å‡ºé”™çš„æç¤ºç”¨æ³•
 	if(argc==1)
 	{
 		usage();
 		return 1;
 	}
 
-    //ÈôÖ¸¶¨ÁËÓÅÏÈ¼¶£¬»ñÈ¡Ö®
+    //è‹¥æŒ‡å®šäº†ä¼˜å…ˆçº§ï¼Œè·å–ä¹‹
 	while(--argc>0 && (*++argv)[0]=='-')
 	{
 		while(c=*++argv[0])
 			switch(c)
 		{
-		    //´æÈ¡ÓÅÏÈ¼¶¼¶Êı
+		    //å­˜å–ä¼˜å…ˆçº§çº§æ•°
 			case 'p':p=atoi(*(++argv));
 			argc--;
 			break;
@@ -48,21 +48,21 @@ int main(int argc,char *argv[])
 		}
 	}
     
-    //Ö¸¶¨ÓÅÏÈ¼¶¼¶Êı·Ç·¨
+    //æŒ‡å®šä¼˜å…ˆçº§çº§æ•°éæ³•
 	if(p<0||p>3)
 	{
 		printf("invalid priority:must between 0 and 3\n");
 		return 1;
 	}
 
-    //¼ÇÂ¼Èë¶ÓÃüÁî
+    //è®°å½•å…¥é˜Ÿå‘½ä»¤
 	enqcmd.type=ENQ;
 	enqcmd.defpri=p;
 	enqcmd.owner=getuid();
 	enqcmd.argnum=argc;
 	offset=enqcmd.data;
 
-    //½«Èë¶ÓÃüÁîÖĞÖÆ¶¨µÄ¿ÉÖ´ĞĞÎÄ¼şÃû¼°Æä²ÎÊıÓÃÃ°ºÅ¸ô¿ª
+    //å°†å…¥é˜Ÿå‘½ä»¤ä¸­åˆ¶å®šçš„å¯æ‰§è¡Œæ–‡ä»¶ååŠå…¶å‚æ•°ç”¨å†’å·éš”å¼€
 	while (argc-->0)
 	{
 		strcpy(offset,*argv);
@@ -71,7 +71,7 @@ int main(int argc,char *argv[])
 		argv++;
 	}
 
-    //Êä³öµ÷ÊÔĞÅÏ¢
+    //è¾“å‡ºè°ƒè¯•ä¿¡æ¯
     #ifdef DEBUG
 		printf("enqcmd cmdtype\t%d\n"
 			"enqcmd owner\t%d\n"
@@ -81,11 +81,11 @@ int main(int argc,char *argv[])
 
     #endif 
         
-        //´ò¿ªfifoÎÄ¼ş
+        //æ‰“å¼€fifoæ–‡ä»¶
 		if((fd=open("/tmp/server",O_WRONLY))<0)
 			error_sys("enq open fifo failed");
         
-        //ÏòfifoÎÄ¼şĞ´Êı¾İ
+        //å‘fifoæ–‡ä»¶å†™æ•°æ®
 		if(write(fd,&enqcmd,DATALEN)<0)
 			error_sys("enq write failed");
 

@@ -18,7 +18,7 @@
 #define GLOBALFILE "screendump"
 
 
-//×÷Òµ×´Ì¬
+//ä½œä¸šçŠ¶æ€
 enum jobstate{
     READY,RUNNING,DONE
 };
@@ -27,7 +27,7 @@ enum cmdtype{
     ENQ=-1,DEQ=-2,STAT=-3 
 };
 
-//×÷Òµµ÷¶ÈÃüÁî
+//ä½œä¸šè°ƒåº¦å‘½ä»¤
 struct jobcmd{
     enum cmdtype type;
     int argnum;
@@ -39,22 +39,22 @@ struct jobcmd{
 #define DATALEN sizeof(struct jobcmd)
 
 
-//×÷ÒµĞÅÏ¢
+//ä½œä¸šä¿¡æ¯
 struct jobinfo{
-    int jid;              /* ×÷ÒµID */
-    int pid;              /* ½ø³ÌID */
-    char** cmdarg;        /* ÃüÁî²ÎÊı */
-    int defpri;           /* Ä¬ÈÏÓÅÏÈ¼¶ */
-    int curpri;           /* µ±Ç°ÓÅÏÈ¼¶ */
-    int ownerid;          /* ×÷ÒµËùÓĞÕßID */
-    int wait_time;        /* ×÷ÒµÔÚµÈ´ı¶ÓÁĞÖĞµÈ´ıÊ±¼ä */
-    time_t create_time;   /* ×÷Òµ´´½¨Ê±¼ä */
-    int run_time;         /* ×÷ÒµÔËĞĞÊ±¼ä */
-    enum jobstate state;  /* ×÷Òµ×´Ì¬ */
+    int jid;              /* ä½œä¸šID */
+    int pid;              /* è¿›ç¨‹ID */
+    char** cmdarg;        /* å‘½ä»¤å‚æ•° */
+    int defpri;           /* é»˜è®¤ä¼˜å…ˆçº§ */
+    int curpri;           /* å½“å‰ä¼˜å…ˆçº§ */
+    int ownerid;          /* ä½œä¸šæ‰€æœ‰è€…ID */
+    int wait_time;        /* ä½œä¸šåœ¨ç­‰å¾…é˜Ÿåˆ—ä¸­ç­‰å¾…æ—¶é—´ */
+    time_t create_time;   /* ä½œä¸šåˆ›å»ºæ—¶é—´ */
+    int run_time;         /* ä½œä¸šè¿è¡Œæ—¶é—´ */
+    enum jobstate state;  /* ä½œä¸šçŠ¶æ€ */
 };
 
 
-//¾ÍĞ÷¶ÓÁĞ
+//å°±ç»ªé˜Ÿåˆ—
 struct waitqueue{
     struct waitqueue *next;
     struct jobinfo *job;
