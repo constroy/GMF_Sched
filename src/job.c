@@ -26,7 +26,7 @@ void scheduler()
 	struct jobinfo *newjob=NULL;
 	struct jobcmd cmd;
 	int  count = 0;
-	bzero(&cmd,DATALEN);
+	memset(&cmd,0,DATALEN);
 	if((count=read(fifo,&cmd,DATALEN))<0)
 		error_sys("read fifo failed");
 #ifdef DEBUG
@@ -125,11 +125,10 @@ void jobswitch()
 		current = NULL;
 	}
 
-	if(next == NULL && current == NULL) /* 没有作业要运行 */
-
+	if(next == NULL && current == NULL){ /* 没有作业要运行 */
 		return;
+	}
 	else if (next != NULL && current == NULL){ /* 开始新的作业 */
-
 		printf("begin start new job\n");
 		current = next;
 		next = NULL;
