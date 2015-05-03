@@ -76,8 +76,9 @@ int main(int argc,char *argv[])
 		printf("enqcmd cmdtype\t%d\n"
 			"enqcmd owner\t%d\n"
 			"enqcmd defpri\t%d\n"
-			"enqcmd data\t%s\n",
-			enqcmd.type,enqcmd.owner,enqcmd.defpri,enqcmd.data);
+			"enqcmd data\t%s\n"
+			"enqcmd argnum\t%d\n",
+			enqcmd.type,enqcmd.owner,enqcmd.defpri,enqcmd.data,enqcmd.argnum);
 
     #endif 
         
