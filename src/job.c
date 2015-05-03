@@ -169,6 +169,11 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	int status;
 	int ret;
 
+	//task 10:
+	#ifdef DEBUG
+		struct waitqueue *p;
+	#endif
+
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 	scheduler();
@@ -185,6 +190,23 @@ case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	}else if (WIFSTOPPED(status)){
 		printf("child stopped, signal number = %d\n",WSTOPSIG(status));
 	}
+
+	//task 10:
+	#ifdef DEBUG
+		if(current) {
+			printf("current process: %d\n", current->job->pid);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		
+		printf("JOBID\ttPID\tSTATE\n");
+
+		for(p=head; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	#endif
+
 	return;
 	default:
 		return;
