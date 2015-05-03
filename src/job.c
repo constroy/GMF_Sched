@@ -12,6 +12,8 @@
 #include <time.h>
 #include "job.h"
 
+#define DEBUG
+
 int jobid=0;
 int siginfo=1;
 int fifo;
@@ -130,6 +132,7 @@ void jobswitch()
 	}
 	else if (next != NULL && current == NULL){ /* 开始新的作业 */
 		printf("begin start new job\n");
+		printf("%d\n",next->job->pid);
 		current = next;
 		next = NULL;
 		current->job->state = RUNNING;
@@ -262,13 +265,14 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 #endif
 
 		/*复制文件描述符到标准输出*/
-		dup2(globalfd,1);
+		//dup2(globalfd,1);
 		/* 执行命令 */
 		if(execv(arglist[0],arglist)<0)
 			printf("exec failed\n");
 		exit(1);
 	}else{
 		newjob->pid=pid;
+		waitpid(pid,NULL,0);
 	}
 }
 
