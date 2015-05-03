@@ -376,6 +376,10 @@ int main()
 	struct stat statbuf;
 	struct sigaction newact,oldact1,oldact2;
 
+	#ifdef DEBUG
+		printf("DEBUG IS OPEN!");
+	#endif
+
 	if(stat("/tmp/server",&statbuf)==0){
 		/* 如果FIFO文件存在,删掉 */
 		if(remove("/tmp/server")<0)
