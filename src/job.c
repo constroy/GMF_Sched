@@ -27,6 +27,7 @@ void scheduler()
 {
 	struct jobinfo *newjob=NULL;
 	struct jobcmd cmd;
+struct waitqueue *p;
 	int  count = 0;
 	memset(&cmd,0,DATALEN);
 	if((count=read(fifo,&cmd,DATALEN))<0)
@@ -42,7 +43,48 @@ void scheduler()
 #ifdef DEBUG
        printf("Update jobs in wait queue!\n");
 #endif
+
+
+	#ifdef DEBUG														//liuhaibo
+		printf("BEFORE UPDATEALL:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		if(head){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
+		}
+
+		for(p=head; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	#endif
+
 updateall();
+
+
+	#ifdef DEBUG														//liuhaibo
+		printf("AFTER UPDATEALL:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		if(head){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
+		}
+
+		for(p=head; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	#endif
 
 	switch(cmd.type){
 	case ENQ:
