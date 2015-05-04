@@ -20,7 +20,7 @@ const int quantum[3]={1,2,5};
 int jobid=0;
 int siginfo=1;
 int fifo;
-int globalfd;
+//int globalfd;
 
 struct waitqueue *head[3]={NULL,NULL,NULL};
 struct waitqueue *next=NULL,*current=NULL;
@@ -518,6 +518,6 @@ int main()
 	while(siginfo==1);
 
 	close(fifo);
-	close(globalfd);
+	//close(globalfd);
 	return 0;
 }
