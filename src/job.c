@@ -14,13 +14,16 @@
 
 #define DEBUG
 
+//时间片
+const int quantum[3]={1,2,5};
+
 int jobid=0;
 int siginfo=1;
 int fifo;
 int globalfd;
 
-struct waitqueue *head=NULL;
-struct waitqueue *next=NULL,*current =NULL;
+struct waitqueue *head[3]={NULL,NULL,NULL};
+struct waitqueue *next=NULL,*current=NULL;
 
 /* 调度程序 */
 void scheduler()
@@ -42,43 +45,45 @@ void scheduler()
 #ifdef DEBUG
        printf("Update jobs in wait queue!\n");
 #endif
-updateall();
+	updateall();
 
 	switch(cmd.type){
 	case ENQ:
-                #ifdef DEBUG
-                       printf("Execute enq!\n");
-                #endif
+#ifdef DEBUG
+		printf("Execute enq!\n");
+#endif
 
 		do_enq(newjob,cmd);
 		break;
 	case DEQ:
-                #ifdef DEBUG
-                       printf("Execute deq!\n");
-                #endif
+#ifdef DEBUG
+		printf("Execute deq!\n");
+#endif
 		do_deq(cmd);
 		break;
 	case STAT:
-                 #ifdef DEBUG
-                       printf("Execute stat!\n");
-                #endif
+#ifdef DEBUG
+		printf("Execute stat!\n");
+#endif
 		do_stat(cmd);
 		break;
 	default:
 		break;
 	}
 
-                #ifdef DEBUG
-                       printf("Select which job to run next\n");
-                #endif
-	/* 选择高优先级作业 */
-	next=jobselect();
-	/* 作业切换 */
-                #ifdef DEBUG
-                       printf("Switch to the next job!\n");
-                #endif
-
-	jobswitch();
+#ifdef DEBUG
+	printf("Select which job to run next\n");
+#endif
+	if (current == NULL || current->job->run_time == quantum[current->job->curpri])
+	{
+		/* 选择高优先级作业 */
+		next=jobselect();
+#ifdef DEBUG
+	printf("Switch to the next job!\n");
+#endif
+		/* 作业切换 */
+		jobswitch();
+	}
 }
 
 int allocjid()
@@ -88,42 +93,44 @@ int allocjid()
 
 void updateall()
 {
-	struct waitqueue *p;
+	int i;
+	struct waitqueue *p,*prev,*q;
 
 	/* 更新作业运行时间 */
 	if(current)
 		current->job->run_time += 1; /* 加1代表1000ms */
 
 	/* 更新作业等待时间及优先级 */
-	for(p = head; p != NULL; p = p->next){
-		p->job->wait_time += 1000;
-		if(p->job->wait_time >= 5000 && p->job->curpri < 3){
-			p->job->curpri++;
-			p->job->wait_time = 0;
+	for (i=0;i<3;++i){
+		for (prev = head[i], p = head[i]; p != NULL; prev = p,p = p->next){
+			p->job->wait_time += 1000;
+			if (p->job->wait_time >= 10000 && i != 0){
+				p->job->level=i-1;
+				p->job->wait_time = 0;
+				if (head[i]==p) head[i]=NULL;
+				else prev->next = p->next;
+				if (head[i-1]){
+					for(q=head[i-1];q->next != NULL; q=q->next);
+					q->next=p;
+				} else {
+					head[i-1]=p;
+				}
+			}
 		}
 	}
 }
 
 struct waitqueue* jobselect()
 {
-	struct waitqueue *p,*prev,*select,*selectprev;
-	int highest = -1;
-
-	select = NULL;
-	selectprev = NULL;
-	if(head){
-		/* 遍历等待队列中的作业，找到优先级最高的作业 */
-		for(prev = head, p = head; p != NULL; prev = p,p = p->next)
-			if(p->job->curpri > highest){
-				select = p;
-				selectprev = prev;
-				highest = p->job->curpri;
-			}
-			selectprev->next = select->next;
-			if (select == selectprev)
-				head = NULL;
+	int i;
+	struct waitqueue *select = NULL;
+	for (i=0;i<3;++i)
+	if(head[i]){
+		select=head[i];
+		head[i]=head[i]->next;
+		return select;
 	}
-	return select;
+	return NULL;
 }
 
 void jobswitch()
@@ -131,24 +138,26 @@ void jobswitch()
 	struct waitqueue *p;
 	int i;
 
-	#ifdef DEBUG
-		printf("BEFORE JOBSWITCH:\n");
-		if(current) {
-			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-		}
-		else {
-			printf("no current process!\n");
-		}
-		if(head){		
+#ifdef DEBUG
+	printf("BEFORE JOBSWITCH:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
 			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
 		}else{		
 			printf("\nwaitqueue id empty!\n");		
 		}
 
-		for(p=head; p!=NULL; p=p->next) {
+		for(p=head[i]; p!=NULL; p=p->next) {
 			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
 		}
-	#endif
+	}
+#endif
 
 	if(current && current->job->state == DONE){ /* 当前作业完成 */
 		/* 作业完成，删除它 */
@@ -185,11 +194,13 @@ void jobswitch()
 		current->job->state = READY;
 
 		/* 放回等待队列 */
-		if(head){
-			for(p = head; p->next != NULL; p = p->next);
+		if (current->job->level<2) ++current->job->level;
+		i=current->job->level;
+		if(head[i]){
+			for(p = head[i]; p->next != NULL; p = p->next);
 			p->next = current;
 		}else{
-			head = current;
+			head[i] = current;
 		}
 		current = next;
 		next = NULL;
@@ -201,43 +212,45 @@ void jobswitch()
 		;
 	}
 
-	#ifdef DEBUG
-		printf("\nAFTER JOBSWITCH:\n");
-		if(current) {
-			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-		}
-		else {
-			printf("no current process!\n");
-		}
-		if(head){		
+#ifdef DEBUG
+	printf("\nAFTER JOBSWITCH:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
 			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
 		}else{		
 			printf("\nwaitqueue id empty!\n");		
 		}
 
-		for(p=head; p!=NULL; p=p->next) {
+		for(p=head[i]; p!=NULL; p=p->next) {
 			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
 		}
-	#endif
+	}
+#endif
 }
 
 void sig_handler(int sig,siginfo_t *info,void *notused)
 {
 	int status;
 	int ret;
-
+	int i;
 	//task 10:
-	#ifdef DEBUG
+#ifdef DEBUG
 		struct waitqueue *p;
-	#endif
+#endif
 
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 	scheduler();
 	//task 2
-	#ifdef DEBUG
+#ifdef DEBUG
 		printf("SIGVTALRM RECEIVED!\n");
-	#endif
+#endif
 	return;
 case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	ret = waitpid(-1,&status,WNOHANG);
@@ -253,20 +266,22 @@ case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	}
 
 	//task 10:
-	#ifdef DEBUG
-		if(current) {
-			printf("current process: %d\n", current->job->pid);
-		}
-		else {
-			printf("no current process!\n");
-		}
+#ifdef DEBUG
+	if(current) {
+		printf("current process: %d\n", current->job->pid);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	
+	printf("JOBID\ttPID\tSTATE\n");
+	for (i=0;i<3;++i) {
 		
-		printf("JOBID\ttPID\tSTATE\n");
-
-		for(p=head; p!=NULL; p=p->next) {
+		for(p=head[i]; p!=NULL; p=p->next) {
 			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
 		}
-	#endif
+	}
+#endif
 
 	return;
 	default:
@@ -324,12 +339,12 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newnode->next =NULL;
 	newnode->job=newjob;
 
-	if(head)
+	if(head[0])
 	{
-		for(p=head;p->next != NULL; p=p->next);
+		for(p=head[0];p->next != NULL; p=p->next);
 		p->next =newnode;
 	}else
-		head=newnode;
+		head[0]=newnode;
 
 	/*为作业创建进程*/
 	if((pid=fork())<0)
@@ -362,6 +377,10 @@ void do_deq(struct jobcmd deqcmd)
 {
 	int deqid,i;
 	struct waitqueue *p,*prev,*select,*selectprev;
+	sigset_t zeromask;
+
+	sigemptyset(&zeromask);
+	
 	deqid=atoi(deqcmd.data);
 
 #ifdef DEBUG
@@ -370,7 +389,7 @@ void do_deq(struct jobcmd deqcmd)
 
 	/*current jodid==deqid,终止当前作业*/
 	if (current && current->job->jid ==deqid){
-		printf("teminate current job\n");
+		printf("terminate current job\n");
 		kill(current->job->pid,SIGKILL);
 		for(i=0;(current->job->cmdarg)[i]!=NULL;i++){
 			free((current->job->cmdarg)[i]);
@@ -382,36 +401,42 @@ void do_deq(struct jobcmd deqcmd)
 		current=NULL;
 	}
 	else{ /* 或者在等待队列中查找deqid */
-		select=NULL;
-		selectprev=NULL;
-		if(head){
-			for(prev=head,p=head;p!=NULL;prev=p,p=p->next)
-				if(p->job->jid==deqid){
-					select=p;
-					selectprev=prev;
-					break;
-				}
-				selectprev->next=select->next;
-				if(select==selectprev)
-					head=NULL;
-		}
-		if(select){
-			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
-				free((select->job->cmdarg)[i]);
-				(select->job->cmdarg)[i]=NULL;
-			}
-			free(select->job->cmdarg);
-			free(select->job);
-			free(select);
+		for (i=0;i<3;++i){
 			select=NULL;
+			selectprev=NULL;
+			if(head[i]){
+				for(prev=head[i],p=head[i];p!=NULL;prev=p,p=p->next)
+					if(p->job->jid==deqid){
+						select=p;
+						selectprev=prev;
+						break;
+					}
+					selectprev->next=select->next;
+					if(select==selectprev)
+						head[i]=NULL;
+			}
+			if(select){
+				for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+					free((select->job->cmdarg)[i]);
+					(select->job->cmdarg)[i]=NULL;
+				}
+				free(select->job->cmdarg);
+				free(select->job);
+				free(select);
+				select=NULL;
+			}
 		}
 	}
 }
 
 void do_stat(struct jobcmd statcmd)
 {
+	int i;
 	struct waitqueue *p;
 	char timebuf[BUFLEN];
+	sigset_t zeromask;
+
+	sigemptyset(&zeromask);
 	/*
 	*打印所有作业的统计信息:
 	*1.作业ID
@@ -436,18 +461,19 @@ void do_stat(struct jobcmd statcmd)
 			current->job->wait_time,
 			timebuf,"RUNNING");
 	}
-
-	for(p=head;p!=NULL;p=p->next){
-		strcpy(timebuf,ctime(&(p->job->create_time)));
-		timebuf[strlen(timebuf)-1]='\0';
-		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
-			p->job->jid,
-			p->job->pid,
-			p->job->ownerid,
-			p->job->run_time,
-			p->job->wait_time,
-			timebuf,
-			"READY");
+	for (i=0;i<3;++i) {
+		for(p=head[i];p!=NULL;p=p->next){
+			strcpy(timebuf,ctime(&(p->job->create_time)));
+			timebuf[strlen(timebuf)-1]='\0';
+			printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+				p->job->jid,
+				p->job->pid,
+				p->job->ownerid,
+				p->job->run_time,
+				p->job->wait_time,
+				timebuf,
+				"READY");
+		}
 	}
 }
 
@@ -458,9 +484,9 @@ int main()
 	struct stat statbuf;
 	struct sigaction newact,oldact1,oldact2;
 
-	#ifdef DEBUG
-		printf("DEBUG IS OPEN!");
-	#endif
+#ifdef DEBUG
+	printf("DEBUG IS OPEN!");
+#endif
 
 	if(stat("/tmp/server",&statbuf)==0){
 		/* 如果FIFO文件存在,删掉 */
