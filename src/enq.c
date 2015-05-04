@@ -35,7 +35,7 @@ int main(int argc,char *argv[])
     //若指定了优先级，获取之
 	while(--argc>0 && (*++argv)[0]=='-')
 	{
-		while(c=*++argv[0])
+		while((c=*++argv[0]))
 			switch(c)
 		{
 		    //存取优先级级数
