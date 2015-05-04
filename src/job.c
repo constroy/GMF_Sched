@@ -13,7 +13,8 @@
 #include "job.h"
 
 #define DEBUG
-
+#define UPD_DEBUG
+#define CMD_DEBUG
 //时间片
 const int quantum[3]={1,2,5};
 
@@ -48,7 +49,7 @@ void scheduler()
        printf("Update jobs in wait queue!\n");
 #endif
 
-#ifdef DEBUG														//liuhaibo
+#ifdef UPD_DEBUG														//liuhaibo
 	printf("BEFORE UPDATEALL:\n");
 	if(current) {
 		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
@@ -71,8 +72,29 @@ void scheduler()
 
 	updateall();
 
-#ifdef DEBUG														//liuhaibo
+#ifdef UPD_DEBUG														//liuhaibo
 	printf("AFTER UPDATEALL:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
+		}
+
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	}
+#endif
+
+#ifdef CMD_DEBUG														//liuhaibo
+	printf("BEFORE CMD:\n");
 	if(current) {
 		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
 	}
@@ -115,7 +137,26 @@ void scheduler()
 	default:
 		break;
 	}
+#ifdef CMD_DEBUG														//liuhaibo
+	printf("AFTER CMD:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
+		}
 
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	}
+#endif
 #ifdef DEBUG
 	printf("Select which job to run next\n");
 #endif
