@@ -17,7 +17,6 @@
 #define BUFLEN 100
 #define GLOBALFILE "screendump"
 
-
 //作业状态
 enum jobstate{
     READY,RUNNING,DONE
@@ -50,6 +49,7 @@ struct jobinfo{
     int wait_time;        /* 作业在等待队列中等待时间 */
     time_t create_time;   /* 作业创建时间 */
     int run_time;         /* 作业运行时间 */
+    int level;			  /* 所处等级 */
     enum jobstate state;  /* 作业状态 */
 };
 
