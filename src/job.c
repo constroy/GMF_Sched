@@ -113,6 +113,25 @@ void jobswitch()
 	struct waitqueue *p;
 	int i;
 
+	#ifdef DEBUG
+		printf("BEFORE JOBSWITCH:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		if(head){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
+		}
+
+		for(p=head; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	#endif
+
 	if(current && current->job->state == DONE){ /* 当前作业完成 */
 		/* 作业完成，删除它 */
 		for(i = 0;(current->job->cmdarg)[i] != NULL; i++){
@@ -128,7 +147,7 @@ void jobswitch()
 	}
 
 	if(next == NULL && current == NULL){ /* 没有作业要运行 */
-		return;
+		;
 	}
 	else if (next != NULL && current == NULL){ /* 开始新的作业 */
 		printf("begin start new job\n");
@@ -137,7 +156,7 @@ void jobswitch()
 		next = NULL;
 		current->job->state = RUNNING;
 		kill(current->job->pid,SIGCONT);
-		return;
+		
 	}
 	else if (next != NULL && current != NULL){ /* 切换作业 */
 
@@ -159,10 +178,29 @@ void jobswitch()
 		current->job->state = RUNNING;
 		current->job->wait_time = 0;
 		kill(current->job->pid,SIGCONT);
-		return;
+		
 	}else{ /* next == NULL且current != NULL，不切换 */
-		return;
+		;
 	}
+
+	#ifdef DEBUG
+		printf("\nAFTER JOBSWITCH:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		if(head){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
+		}
+
+		for(p=head; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	#endif
 }
 
 void sig_handler(int sig,siginfo_t *info,void *notused)
