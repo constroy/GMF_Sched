@@ -178,6 +178,10 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 	scheduler();
+	//task 2
+	#ifdef DEBUG
+		printf("SIGVTALRM RECEIVED!\n");
+	#endif
 	return;
 case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	ret = waitpid(-1,&status,WNOHANG);
