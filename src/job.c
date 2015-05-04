@@ -35,20 +35,89 @@ void scheduler()
 	int i;
 	int  count = 0;
 	memset(&cmd,0,DATALEN);
-	if((count=read(fifo,&cmd,DATALEN))<0)
-		error_sys("read fifo failed");
+	while (1){
+		if((count=read(fifo,&cmd,DATALEN))<0)
+			error_sys("read fifo failed");
 #ifdef DEBUG
-    printf("Reading whether other process send command!\n");
-	if(count){
-		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
+		printf("Reading whether other process send command!\n");
+		if(count){
+			printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
+		}
+		else{
+			break;
+		}
+#endif
+
+		/* 更新等待队列中的作业 */
+#ifdef DEBUG
+		   printf("Update jobs in wait queue!\n");
+#endif
+
+#ifdef CMD_DEBUG
+		printf("BEFORE CMD:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		for (i=0;i<3;++i){
+			if(head[i]){		
+				printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
+			}else{		
+				printf("\nwaitqueue %d is empty!\n",i);
+			}
+
+			for(p=head[i]; p!=NULL; p=p->next) {
+				printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+			}
+		}
+#endif
+
+		switch(cmd.type){
+		case ENQ:
+#ifdef DEBUG
+			printf("Execute enq!\n");
+#endif
+
+			do_enq(newjob,cmd);
+			break;
+		case DEQ:
+#ifdef DEBUG
+			printf("Execute deq!\n");
+#endif
+			do_deq(cmd);
+			break;
+		case STAT:
+#ifdef DEBUG
+			printf("Execute stat!\n");
+#endif
+			do_stat(cmd);
+			break;
+		default:
+			break;
+		}
+	}
+#ifdef CMD_DEBUG
+	printf("AFTER CMD:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
+		}else{		
+			printf("\nwaitqueue %d is empty!\n",i);
+		}
+
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
 	}
 #endif
-
-	/* 更新等待队列中的作业 */
-#ifdef DEBUG
-       printf("Update jobs in wait queue!\n");
-#endif
-
 #ifdef UPD_DEBUG														//liuhaibo
 	printf("BEFORE UPDATEALL:\n");
 	if(current) {
@@ -59,9 +128,9 @@ void scheduler()
 	}
 	for (i=0;i<3;++i){
 		if(head[i]){		
-			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
 		}else{		
-			printf("\nwaitqueue id empty!\n");		
+			printf("\nwaitqueue %d is empty!\n",i);		
 		}
 
 		for(p=head[i]; p!=NULL; p=p->next) {
@@ -82,74 +151,9 @@ void scheduler()
 	}
 	for (i=0;i<3;++i){
 		if(head[i]){		
-			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
 		}else{		
-			printf("\nwaitqueue id empty!\n");		
-		}
-
-		for(p=head[i]; p!=NULL; p=p->next) {
-			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
-		}
-	}
-#endif
-
-#ifdef CMD_DEBUG														//liuhaibo
-	printf("BEFORE CMD:\n");
-	if(current) {
-		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-	}
-	else {
-		printf("no current process!\n");
-	}
-	for (i=0;i<3;++i){
-		if(head[i]){		
-			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
-		}else{		
-			printf("\nwaitqueue id empty!\n");		
-		}
-
-		for(p=head[i]; p!=NULL; p=p->next) {
-			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
-		}
-	}
-#endif
-
-	switch(cmd.type){
-	case ENQ:
-#ifdef DEBUG
-		printf("Execute enq!\n");
-#endif
-
-		do_enq(newjob,cmd);
-		break;
-	case DEQ:
-#ifdef DEBUG
-		printf("Execute deq!\n");
-#endif
-		do_deq(cmd);
-		break;
-	case STAT:
-#ifdef DEBUG
-		printf("Execute stat!\n");
-#endif
-		do_stat(cmd);
-		break;
-	default:
-		break;
-	}
-#ifdef CMD_DEBUG														//liuhaibo
-	printf("AFTER CMD:\n");
-	if(current) {
-		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-	}
-	else {
-		printf("no current process!\n");
-	}
-	for (i=0;i<3;++i){
-		if(head[i]){		
-			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
-		}else{		
-			printf("\nwaitqueue id empty!\n");		
+			printf("\nwaitqueue %d is empty!\n",i);
 		}
 
 		for(p=head[i]; p!=NULL; p=p->next) {
@@ -237,9 +241,9 @@ void jobswitch()
 	}
 	for (i=0;i<3;++i){
 		if(head[i]){		
-			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
 		}else{		
-			printf("\nwaitqueue id empty!\n");		
+			printf("\nwaitqueue %d is empty!\n",i);
 		}
 
 		for(p=head[i]; p!=NULL; p=p->next) {
@@ -280,15 +284,15 @@ void jobswitch()
 		kill(current->job->pid,SIGSTOP);
 		current->job->curpri = current->job->defpri;
 		current->job->wait_time = 0;
-		current->job->run_time = 0;
 		current->job->state = READY;
 
-		/* 放回等待队列 */
-		if (current->job->run_time == quantum[current->job->level] &&
-			current->job->level<2){
-				++current->job->level;
+		if (current->job->run_time >= quantum[current->job->level]){
+				current->job->run_time=0;
+				if (current->job->level<2) ++current->job->level;
 		}
 		i=current->job->level;
+		printf("level:%d-------\n",i);
+		/* 放回等待队列 */
 		if(head[i]){
 			for(p = head[i]; p->next != NULL; p = p->next);
 			p->next = current;
@@ -315,9 +319,9 @@ void jobswitch()
 	}
 	for (i=0;i<3;++i){
 		if(head[i]){		
-			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
 		}else{		
-			printf("\nwaitqueue id empty!\n");		
+			printf("\nwaitqueue %d is empty!\n",i);		
 		}
 
 		for(p=head[i]; p!=NULL; p=p->next) {
@@ -401,6 +405,7 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newjob->create_time = time(NULL);
 	newjob->wait_time = 0;
 	newjob->run_time = 0;
+	newjob->level=0;
 	arglist = (char**)malloc(sizeof(char*)*(enqcmd.argnum+1));
 	newjob->cmdarg = arglist;
 	offset = enqcmd.data;
@@ -452,8 +457,8 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	}
 	/*向等待队列中增加新的作业*/
 	next = (struct waitqueue*)malloc(sizeof(struct waitqueue));
-	next->next =NULL;
 	next->job=newjob;
+	next->next =NULL;
 	jobswitch();
 }
 
