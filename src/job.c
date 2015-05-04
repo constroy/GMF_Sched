@@ -48,49 +48,49 @@ void scheduler()
        printf("Update jobs in wait queue!\n");
 #endif
 
-	#ifdef DEBUG														//liuhaibo
-		printf("BEFORE UPDATEALL:\n");
-		if(current) {
-			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+#ifdef DEBUG														//liuhaibo
+	printf("BEFORE UPDATEALL:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
 		}
-		else {
-			printf("no current process!\n");
-		}
-		for (i=0;i<3;++i){
-			if(head[i]){		
-				printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
-			}else{		
-				printf("\nwaitqueue id empty!\n");		
-			}
 
-			for(p=head[i]; p!=NULL; p=p->next) {
-				printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
-			}
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
 		}
-	#endif
+	}
+#endif
 
 	updateall();
 
-	#ifdef DEBUG														//liuhaibo
-		printf("AFTER UPDATEALL:\n");
-		if(current) {
-			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+#ifdef DEBUG														//liuhaibo
+	printf("AFTER UPDATEALL:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+		}else{		
+			printf("\nwaitqueue id empty!\n");		
 		}
-		else {
-			printf("no current process!\n");
-		}
-		for (i=0;i<3;++i){
-			if(head[i]){		
-				printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
-			}else{		
-				printf("\nwaitqueue id empty!\n");		
-			}
 
-			for(p=head[i]; p!=NULL; p=p->next) {
-				printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
-			}
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
 		}
-	#endif
+	}
+#endif
 
 	switch(cmd.type){
 	case ENQ:
@@ -119,8 +119,8 @@ void scheduler()
 #ifdef DEBUG
 	printf("Select which job to run next\n");
 #endif
-	if (current == NULL || current->job->run_time == quantum[current->job->curpri])
-	{
+	if (current == NULL || current->job->state == DONE ||
+		current->job->run_time == quantum[current->job->level]) {
 		/* 选择高优先级作业 */
 		next=jobselect();
 #ifdef DEBUG
@@ -170,13 +170,15 @@ struct waitqueue* jobselect()
 {
 	int i;
 	struct waitqueue *select = NULL;
-	for (i=0;i<3;++i)
-	if(head[i]){
-		select=head[i];
-		head[i]=head[i]->next;
-		return select;
+	for (i=0;i<3;++i){
+		if(head[i]){
+			select=head[i];
+			head[i]=head[i]->next;
+			select->next=NULL;
+			break;
+		}
 	}
-	return NULL;
+	return select;
 }
 
 void jobswitch()
@@ -237,10 +239,14 @@ void jobswitch()
 		kill(current->job->pid,SIGSTOP);
 		current->job->curpri = current->job->defpri;
 		current->job->wait_time = 0;
+		current->job->run_time = 0;
 		current->job->state = READY;
 
 		/* 放回等待队列 */
-		if (current->job->level<2) ++current->job->level;
+		if (current->job->run_time == quantum[current->job->level] &&
+			current->job->level<2){
+				++current->job->level;
+		}
 		i=current->job->level;
 		if(head[i]){
 			for(p = head[i]; p->next != NULL; p = p->next);
@@ -255,7 +261,7 @@ void jobswitch()
 		kill(current->job->pid,SIGCONT);
 		
 	}else{ /* next == NULL且current != NULL，不切换 */
-		;
+		current->job->run_time = 0;
 	}
 
 #ifdef DEBUG
@@ -337,7 +343,6 @@ case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 
 void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 {
-	struct waitqueue *newnode,*p;
 	int i=0,pid;
 	char *offset,*argvec,*q;
 	char **arglist;
@@ -380,24 +385,11 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 
 #endif
 
-	/*向等待队列中增加新的作业*/
-	newnode = (struct waitqueue*)malloc(sizeof(struct waitqueue));
-	newnode->next =NULL;
-	newnode->job=newjob;
-
-	if(head[0])
-	{
-		for(p=head[0];p->next != NULL; p=p->next);
-		p->next =newnode;
-	}else
-		head[0]=newnode;
-
 	/*为作业创建进程*/
 	if((pid=fork())<0)
 		error_sys("enq fork failed");
 
 	if(pid==0){
-		newjob->pid =getpid();
 		/*阻塞子进程,等等执行*/
 		raise(SIGSTOP);
 #ifdef DEBUG
@@ -417,6 +409,11 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 		newjob->pid=pid;
 		waitpid(pid,NULL,0);
 	}
+	/*向等待队列中增加新的作业*/
+	next = (struct waitqueue*)malloc(sizeof(struct waitqueue));
+	next->next =NULL;
+	next->job=newjob;
+	jobswitch();
 }
 
 void do_deq(struct jobcmd deqcmd)
@@ -451,26 +448,33 @@ void do_deq(struct jobcmd deqcmd)
 			select=NULL;
 			selectprev=NULL;
 			if(head[i]){
-				for(prev=head[i],p=head[i];p!=NULL;prev=p,p=p->next)
+				for(prev=head[i],p=head[i];p!=NULL;prev=p,p=p->next){
 					if(p->job->jid==deqid){
 						select=p;
 						selectprev=prev;
 						break;
 					}
+				}
+				if (select){
 					selectprev->next=select->next;
 					if(select==selectprev)
 						head[i]=head[i]->next;
+					break;
+				}	
 			}
-			if(select){
-				for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
-					free((select->job->cmdarg)[i]);
-					(select->job->cmdarg)[i]=NULL;
-				}
-				free(select->job->cmdarg);
-				free(select->job);
-				free(select);
-				select=NULL;
+		}
+		if(select){
+			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+				free((select->job->cmdarg)[i]);
+				(select->job->cmdarg)[i]=NULL;
 			}
+			free(select->job->cmdarg);
+			free(select->job);
+			free(select);
+			select=NULL;
+		}
+		else{
+			printf("job %d not found!\n",deqid);
 		}
 	}
 }
