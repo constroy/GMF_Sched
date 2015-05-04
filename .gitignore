@@ -3,3 +3,5 @@ deq
 enq
 job
 stat
+.gitignore
+.directory

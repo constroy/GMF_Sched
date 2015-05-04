@@ -36,8 +36,9 @@ int main(int argc,char *argv[])
 	while(--argc>0 && (*++argv)[0]=='-')
 	{
 		while((c=*++argv[0]))
-			switch(c)
 		{
+			switch(c)
+			{
 		    //存取优先级级数
 			case 'p':p=atoi(*(++argv));
 			argc--;
@@ -45,6 +46,7 @@ int main(int argc,char *argv[])
 			default:
 				printf("Illegal option %c\n",c);
 				return 1;
+			}
 		}
 	}
     

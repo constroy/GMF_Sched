@@ -30,12 +30,14 @@ void scheduler()
 {
 	struct jobinfo *newjob=NULL;
 	struct jobcmd cmd;
+	struct waitqueue *p;
+	int i;
 	int  count = 0;
 	memset(&cmd,0,DATALEN);
 	if((count=read(fifo,&cmd,DATALEN))<0)
 		error_sys("read fifo failed");
 #ifdef DEBUG
-        printf("Reading whether other process send command!\n");
+    printf("Reading whether other process send command!\n");
 	if(count){
 		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
 	}
@@ -45,7 +47,50 @@ void scheduler()
 #ifdef DEBUG
        printf("Update jobs in wait queue!\n");
 #endif
+
+	#ifdef DEBUG														//liuhaibo
+		printf("BEFORE UPDATEALL:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		for (i=0;i<3;++i){
+			if(head[i]){		
+				printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+			}else{		
+				printf("\nwaitqueue id empty!\n");		
+			}
+
+			for(p=head[i]; p!=NULL; p=p->next) {
+				printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+			}
+		}
+	#endif
+
 	updateall();
+
+	#ifdef DEBUG														//liuhaibo
+		printf("AFTER UPDATEALL:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+		}
+		else {
+			printf("no current process!\n");
+		}
+		for (i=0;i<3;++i){
+			if(head[i]){		
+				printf("\nwaitqueue: \nJOBID\tPID\tSTATE\n");
+			}else{		
+				printf("\nwaitqueue id empty!\n");		
+			}
+
+			for(p=head[i]; p!=NULL; p=p->next) {
+				printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+			}
+		}
+	#endif
 
 	switch(cmd.type){
 	case ENQ:
@@ -107,8 +152,9 @@ void updateall()
 			if (p->job->wait_time >= 10000 && i != 0){
 				p->job->level=i-1;
 				p->job->wait_time = 0;
-				if (head[i]==p) head[i]=NULL;
+				if (head[i]==p) head[i]=head[i]->next;
 				else prev->next = p->next;
+				p->next=NULL;
 				if (head[i-1]){
 					for(q=head[i-1];q->next != NULL; q=q->next);
 					q->next=p;
@@ -413,7 +459,7 @@ void do_deq(struct jobcmd deqcmd)
 					}
 					selectprev->next=select->next;
 					if(select==selectprev)
-						head[i]=NULL;
+						head[i]=head[i]->next;
 			}
 			if(select){
 				for(i=0;(select->job->cmdarg)[i]!=NULL;i++){

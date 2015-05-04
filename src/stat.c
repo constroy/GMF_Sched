@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include "job.h"
 
+#define DEBUG
+
 /* 
  * 命令语法格式
  *     stat
@@ -34,6 +36,11 @@ int main(int argc,char *argv[])
 	statcmd.defpri=0;
 	statcmd.owner=getuid();
 	statcmd.argnum=0;
+	
+	#ifdef DEBUG
+		printf("cmdtype:%d\n", statcmd.type);
+		printf("owner:%d\n", statcmd.owner);
+	#endif
 
     //打开fifo文件
 	if((fd=open("/tmp/server",O_WRONLY))<0)

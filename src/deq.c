@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include "job.h"
 
+#define DEBUG
+
 /* 
  * 命令语法格式
  *     deq jid
@@ -38,6 +40,11 @@ int main(int argc,char *argv[])
 
 	strcpy(deqcmd.data,*++argv);
 	printf("jid %s\n",deqcmd.data);
+
+	#ifdef DEBUG
+		printf("cmdtype:%d\n", deqcmd.type);
+		printf("owner:%d\n", deqcmd.owner);
+	#endif
 
     //打开fifo文件
 	if((fd=open("/tmp/server",O_WRONLY))<0)
