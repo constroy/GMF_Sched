@@ -169,20 +169,13 @@ void scheduler()
 		/* 选择高优先级作业 */
 		next=jobselect();
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   if(next)
-{
-    printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\t\tSTATE\n");
-}
-else	
-{
-      if(current) {
-		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+
+    if(next) {
+		printf("next process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", next->job->jid,next->job->pid,next->job->state);
 	}
 	else {
-		printf("no current process!\n");
+		printf("no next process!\n");
 	}
-
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
