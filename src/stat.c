@@ -38,8 +38,8 @@ int main(int argc,char *argv[])
 	statcmd.argnum=0;
 	
 	#ifdef DEBUG
-		printf("cmdtype:%d\n", statcmd.type);
-		printf("owner:%d\n", statcmd.owner);
+		printf("任务五：cmdtype:%d\n", statcmd.type);
+		printf("任务五：owner:%d\n", statcmd.owner);
 	#endif
 
     //打开fifo文件

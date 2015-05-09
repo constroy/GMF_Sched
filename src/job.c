@@ -39,9 +39,9 @@ void scheduler()
 		if((count=read(fifo,&cmd,DATALEN))<0)
 			error_sys("read fifo failed");
 #ifdef DEBUG
-		printf("Reading whether other process send command!\n");
+		printf("任务三：\nReading whether other process send command!\n");
 		if(count){
-			printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
+			printf("任务三：\ncmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
 		}
 		else{
 			break;
@@ -50,7 +50,7 @@ void scheduler()
 
 		/* 更新等待队列中的作业 */
 #ifdef DEBUG
-		   printf("Update jobs in wait queue!\n");
+		   printf("任务三：\nUpdate jobs in wait queue!\n");
 #endif
 
 #ifdef CMD_DEBUG
@@ -77,20 +77,20 @@ void scheduler()
 		switch(cmd.type){
 		case ENQ:
 #ifdef DEBUG
-			printf("Execute enq!\n");
+			printf("任务三：\nExecute enq!\n");
 #endif
 
 			do_enq(newjob,cmd);
 			break;
 		case DEQ:
 #ifdef DEBUG
-			printf("Execute deq!\n");
+			printf("任务三：\nExecute deq!\n");
 #endif
 			do_deq(cmd);
 			break;
 		case STAT:
 #ifdef DEBUG
-			printf("Execute stat!\n");
+			printf("任务三：\nExecute stat!\n");
 #endif
 			do_stat(cmd);
 			break;
@@ -119,7 +119,7 @@ void scheduler()
 	}
 #endif
 #ifdef UPD_DEBUG														//liuhaibo
-	printf("BEFORE UPDATEALL:\n");
+	printf("任务六：\nBEFORE UPDATEALL:\n");
 	if(current) {
 		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
 	}
@@ -142,7 +142,7 @@ void scheduler()
 	updateall();
 
 #ifdef UPD_DEBUG														//liuhaibo
-	printf("AFTER UPDATEALL:\n");
+	printf("任务六：\nAFTER UPDATEALL:\n");
 	if(current) {
 		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
 	}
@@ -171,10 +171,10 @@ void scheduler()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     if(next) {
-		printf("next process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", next->job->jid,next->job->pid,next->job->state);
+		printf("TASK_8:next process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", next->job->jid,next->job->pid,next->job->state);
 	}
 	else {
-		printf("no next process!\n");
+		printf("TASK_8:no next process!\n");
 	}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

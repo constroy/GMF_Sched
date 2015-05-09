@@ -42,8 +42,8 @@ int main(int argc,char *argv[])
 	printf("jid %s\n",deqcmd.data);
 
 	#ifdef DEBUG
-		printf("cmdtype:%d\n", deqcmd.type);
-		printf("owner:%d\n", deqcmd.owner);
+		printf("任务五：cmdtype:%d\n", deqcmd.type);
+		printf("任务五：owner:%d\n", deqcmd.owner);
 	#endif
 
     //打开fifo文件
