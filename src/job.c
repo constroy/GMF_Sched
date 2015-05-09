@@ -34,8 +34,51 @@ void scheduler()
 	struct waitqueue *p;
 	int i;
 	int  count = 0;
-	memset(&cmd,0,DATALEN);
+	
+#ifdef UPD_DEBUG														//liuhaibo
+	printf("BEFORE UPDATEALL:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
+		}else{		
+			printf("\nwaitqueue %d is empty!\n",i);		
+		}
+
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	}
+#endif
+	updateall();
+#ifdef UPD_DEBUG														//liuhaibo
+	printf("AFTER UPDATEALL:\n");
+	if(current) {
+		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
+	}
+	else {
+		printf("no current process!\n");
+	}
+	for (i=0;i<3;++i){
+		if(head[i]){		
+			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
+		}else{		
+			printf("\nwaitqueue %d is empty!\n",i);
+		}
+
+		for(p=head[i]; p!=NULL; p=p->next) {
+			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+		}
+	}
+#endif
+
 	while (1){
+		memset(&cmd,0,DATALEN);
 		if((count=read(fifo,&cmd,DATALEN))<0)
 			error_sys("read fifo failed");
 #ifdef DEBUG
@@ -118,49 +161,7 @@ void scheduler()
 		}
 	}
 #endif
-#ifdef UPD_DEBUG														//liuhaibo
-	printf("BEFORE UPDATEALL:\n");
-	if(current) {
-		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-	}
-	else {
-		printf("no current process!\n");
-	}
-	for (i=0;i<3;++i){
-		if(head[i]){		
-			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
-		}else{		
-			printf("\nwaitqueue %d is empty!\n",i);		
-		}
 
-		for(p=head[i]; p!=NULL; p=p->next) {
-			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
-		}
-	}
-#endif
-
-	updateall();
-
-#ifdef UPD_DEBUG														//liuhaibo
-	printf("AFTER UPDATEALL:\n");
-	if(current) {
-		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-	}
-	else {
-		printf("no current process!\n");
-	}
-	for (i=0;i<3;++i){
-		if(head[i]){		
-			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
-		}else{		
-			printf("\nwaitqueue %d is empty!\n",i);
-		}
-
-		for(p=head[i]; p!=NULL; p=p->next) {
-			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
-		}
-	}
-#endif
 #ifdef DEBUG
 	printf("Select which job to run next\n");
 #endif
