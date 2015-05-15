@@ -1,4 +1,4 @@
-#include "time.h"
+1#include "time.h"
 #include <stdio.h>
 
 int main()
@@ -7,7 +7,7 @@ int main()
 	int count=1;  
 	//struct tm *timeinfo;
 	time(&timer);//系统开始的时间
-	while(1)
+	while(count <= 10)
 	{
 		time(&timerc);
 		if((timerc-timer)>=1)//每过1秒打印
