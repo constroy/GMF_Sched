@@ -83,13 +83,11 @@ void scheduler()
 		memset(&cmd,0,DATALEN);
 		if((count=read(fifo,&cmd,DATALEN))<0)
 			error_sys("read fifo failed");
+		if (!count) break;
 #ifdef DEBUG
 		printf("任务三：\nReading whether other process send command!\n");
 		if(count){
 			printf("任务三：\ncmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
-		}
-		else{
-			break;
 		}
 #endif
 
@@ -142,27 +140,27 @@ void scheduler()
 		default:
 			break;
 		}
-	}
 #ifdef CMD_DEBUG
-	printf("AFTER CMD:\n");
-	if(current) {
-		printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
-	}
-	else {
-		printf("no current process!\n");
-	}
-	for (i=0;i<3;++i){
-		if(head[i]){		
-			printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
-		}else{		
-			printf("\nwaitqueue %d is empty!\n",i);
+		printf("AFTER CMD:\n");
+		if(current) {
+			printf("current process: \nJOBID\tPID\tSTATE\n%d\t%d\t%d\n", current->job->jid,current->job->pid,current->job->state);
 		}
+		else {
+			printf("no current process!\n");
+		}
+		for (i=0;i<3;++i){
+			if(head[i]){		
+				printf("\nwaitqueue %d: \nJOBID\tPID\tSTATE\n",i);
+			}else{		
+				printf("\nwaitqueue %d is empty!\n",i);
+			}
 
-		for(p=head[i]; p!=NULL; p=p->next) {
-			printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+			for(p=head[i]; p!=NULL; p=p->next) {
+				printf("%d\t%d\t%d\n", p->job->jid, p->job->pid, p->job->state);
+			}
 		}
-	}
 #endif
+	}
 
 #ifdef DEBUG
 	printf("Select which job to run next\n");
