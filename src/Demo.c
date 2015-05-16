@@ -1,4 +1,4 @@
-1#include "time.h"
+#include "time.h"
 #include <stdio.h>
 
 int main()
